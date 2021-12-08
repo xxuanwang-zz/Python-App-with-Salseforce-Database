@@ -2,6 +2,7 @@ import os
 import sys
 import time
 from pathlib import Path 
+import concurrent.futures
 
 import json
 import selenium
@@ -12,11 +13,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
-from simple_salesforce import Salesforce
+# from simple_salesforce import Salesforce
 import pandas as pd
 
 import urllib.request
 from os.path import basename
+
+MAX_THREADS = 25
 
 class Automated_Vendor_Check:
     
@@ -119,13 +122,18 @@ class Automated_Vendor_Check:
         except Exception as e:
             return e
 
-    def download_file(self, download_url, des_path):
-        response = urllib.request.urlopen(download_url)
+    def download_files(self, file_url, des_dir):
+        response = urllib.request.urlopen(file_url)
         filename = basename(response.url)
-        file_path = os.path.join(os.path.expanduser("~"), des_path, filename)
+        file_path = os.path.join(os.path.expanduser("~"), des_dir, filename)
         file = open(file_path, 'wb')
         file.write(response.read())
         file.close()
+
+    def download_pdfs(self, pdf_url, des_dir):
+        threads = min(MAX_THREADS, len(pdf_url))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+            executor.map(self.download_files(pdf_url, des_dir))
 
     def Debarred_List(self):
         pdf_url = "https://comptroller.texas.gov/purchasing/docs/debarred-vendor-list.pdf"
@@ -133,7 +141,7 @@ class Automated_Vendor_Check:
         des_dir = str(self.make_dir("Debarred Vendor"))
         try:
             if os.path.exists(des_dir):
-                self.download_file(pdf_url, des_dir)
+                self.download_pdfs(pdf_url, des_dir)
 
             if pdf_name in os.listdir(des_dir):
                 return self._notifications('debarred_pass')
@@ -154,8 +162,7 @@ class Automated_Vendor_Check:
             "https://comptroller.texas.gov/purchasing/docs/fto-list.pdf"]
         try:
             for url in pdf_urls:
-                if os.path.exists(des_dir):
-                    ret = self.download_file(url, des_dir)
+                self.download_pdfs(url, des_dir)
 
             time.sleep(2)
             pdf_list = os.listdir(des_dir)
@@ -431,54 +438,55 @@ class Automated_Vendor_Check:
         print("\nFinish Checking------------------")
 
 def main():
-
-    if len(sys.argv) < 1:
-        print("python scraping.py\n")
-        exit(0)
     
-    VendorName = input("Please enter a vendor name>")
-    VendorId = input("Please enter a vendor id>")
-    chrome_path = input("Full path to your chromedriver>")
-    chrome_Path = Path(chrome_path)
-    vendor_check = Automated_Vendor_Check(chrome_Path)
+    # if len(sys.argv) < 1:
+    #     print("python scraping.py\n")
+    #     exit(0)
+    
+    # VendorName = input("Please enter a vendor name>")
+    # VendorId = input("Please enter a vendor id>")
+    # chrome_path = input("Full path to your chromedriver>")
+    # chrome_Path = Path(chrome_path)
+    vendor_check = Automated_Vendor_Check('C:\Program Files\Google\Chrome\Application\chromedriver.exe')
+    vendor_check.Divestiment()
+    vendor_check.Debarred_List()
+    # if VendorName != '' or VendorId != '':
+    #     try:
+    #         vendor_name, vendor_id, duns_num = vendor_check.get_query(VendorName, VendorId)
 
-    if VendorName != '' or VendorId != '':
-        try:
-            vendor_name, vendor_id, duns_num = vendor_check.get_query(VendorName, VendorId)
+    #     except Exception as e:
+    #         print("Please enter a vaild vendor name and id")
+    #         return e
 
-        except Exception as e:
-            print("Please enter a vaild vendor name and id")
-            return e
+    # elif VendorName == '' and VendorId == '':
+    #     print(vendor_check.get_query())
+    #     print("At least one input is required to complete the query")
+    #     exit()
 
-    elif VendorName == '' and VendorId == '':
-        print(vendor_check.get_query())
-        print("At least one input is required to complete the query")
-        exit()
-
-    try:
-        vendor_check.help()
-        response = vendor_check.start(vendor_name, vendor_id, duns_num)
-    except Exception as e:
-        print(e)
+    # try:
+    #     vendor_check.help()
+    #     response = vendor_check.start(vendor_name, vendor_id, duns_num)
+    # except Exception as e:
+    #     print(e)
 
 if __name__ == '__main__':
 
-    print("Please first connect to Salesforce")
-    UserName = input("Username>")
-    Password = input("Password>")
-    SecurityToken = input("Security token>")
-    Domain = input("Domain>")
+    # print("Please first connect to Salesforce")
+    # UserName = input("Username>")
+    # Password = input("Password>")
+    # SecurityToken = input("Security token>")
+    # Domain = input("Domain>")
 
-    try:
-        sf = Salesforce(
-            username = UserName,
-            password = Password,
-            security_token = SecurityToken,
-            domain = Domain)
-        print("Successfully connected to Salesforce!") 
+    # try:
+    #     sf = Salesforce(
+    #         username = UserName,
+    #         password = Password,
+    #         security_token = SecurityToken,
+    #         domain = Domain)
+    #     print("Successfully connected to Salesforce!") 
 
-    except Exception as e:
-        print("Connection failed...")
-        print(e)
+    # except Exception as e:
+    #     print("Connection failed...")
+    #     print(e)
     
     main()
