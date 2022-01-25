@@ -1,3 +1,10 @@
-# Capstone project - Automation
+# Capstone project -Web Scraper  
 
-This capstone project is an automated process to complete vendor checks and store the results as openable PDF documents for the DIR contract managers. It is a python-based program that involves web scraping, database query, and auto-creation of documents. Vendor account information is fetched from Salesforce by using the Salesforce REST API client.
+It is a python-based application that involves web scraping, database query, and auto-creation of documents. Vendor information is fetched from the Salesforce database by using its REST API client. Vendor info will be used as input for certain websites to search for required PDFs.   
+
+Also, this application impelmented multi-threading to speed up the running process.  
+
+**Tech Stack**  
+- Python  
+- Salesforce Object Query Language (SOQL)  
+
