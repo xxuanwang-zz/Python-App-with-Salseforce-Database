@@ -439,54 +439,58 @@ class Automated_Vendor_Check:
 
 def main():
     
-    # if len(sys.argv) < 1:
-    #     print("python scraping.py\n")
-    #     exit(0)
+    if len(sys.argv) < 1:
+        print("python scraping.py\n")
+        exit(0)
     
-    # VendorName = input("Please enter a vendor name>")
-    # VendorId = input("Please enter a vendor id>")
-    # chrome_path = input("Full path to your chromedriver>")
-    # chrome_Path = Path(chrome_path)
-    vendor_check = Automated_Vendor_Check('C:\Program Files\Google\Chrome\Application\chromedriver.exe')
-    vendor_check.Divestiment()
-    vendor_check.Debarred_List()
-    # if VendorName != '' or VendorId != '':
-    #     try:
-    #         vendor_name, vendor_id, duns_num = vendor_check.get_query(VendorName, VendorId)
+    VendorName = input("Please enter a vendor name>")
+    VendorId = input("Please enter a vendor id>")
+    
+    # E.g. 'C:\Program Files\Google\Chrome\Application\chromedriver.exe'
+    chrome_path = input("Full path to your chromedriver>")
+    chrome_Path = Path(chrome_path)
+    
+    vendor_check = Automated_Vendor_Check()
 
-    #     except Exception as e:
-    #         print("Please enter a vaild vendor name and id")
-    #         return e
+    if VendorName != '' or VendorId != '':
+        try:
+            vendor_name, vendor_id, duns_num = vendor_check.get_query(VendorName, VendorId)
 
-    # elif VendorName == '' and VendorId == '':
-    #     print(vendor_check.get_query())
-    #     print("At least one input is required to complete the query")
-    #     exit()
+        except Exception as e:
+            print("Please enter a vaild vendor name and id")
+            return e
 
-    # try:
-    #     vendor_check.help()
-    #     response = vendor_check.start(vendor_name, vendor_id, duns_num)
-    # except Exception as e:
-    #     print(e)
+    elif VendorName == '' and VendorId == '':
+        print(vendor_check.get_query())
+        print("At least one input is required to complete the query")
+        exit()
+
+    try:
+        vendor_check.help()
+        response = vendor_check.start(vendor_name, vendor_id, duns_num)
+    except Exception as e:
+        print(e)
 
 if __name__ == '__main__':
+    
+    # Authorization
+    # Connect to the inner database using username, password, domain, and security token
+    print("Please first connect to Salesforce")
+    UserName = input("Username>")
+    Password = input("Password>")
+    SecurityToken = input("Security token>")
+    Domain = input("Domain>")
 
-    # print("Please first connect to Salesforce")
-    # UserName = input("Username>")
-    # Password = input("Password>")
-    # SecurityToken = input("Security token>")
-    # Domain = input("Domain>")
+    try:
+        sf = Salesforce(
+            username = UserName,
+            password = Password,
+            security_token = SecurityToken,
+            domain = Domain)
+        print("Successfully connected to Salesforce!") 
 
-    # try:
-    #     sf = Salesforce(
-    #         username = UserName,
-    #         password = Password,
-    #         security_token = SecurityToken,
-    #         domain = Domain)
-    #     print("Successfully connected to Salesforce!") 
-
-    # except Exception as e:
-    #     print("Connection failed...")
-    #     print(e)
+    except Exception as e:
+        print("Connection failed...")
+        print(e)
     
     main()
